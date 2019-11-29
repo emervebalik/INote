@@ -2,7 +2,7 @@
 
 var app = angular.module("myApp", ["ngRoute"]);
 
-app.controller("indexCtrl", function ($scope, $window, $http) {
+app.controller("indexCtrl", function ($scope, $window, $http, $location) {
 
     $scope.isAuthenticated = false;
 
@@ -58,7 +58,23 @@ app.controller("indexCtrl", function ($scope, $window, $http) {
         }
     };
 
+    $scope.logout = function (e) {
+
+        e.preventDefault();
+        $scope.setLoggedInUser(null);
+
+        $http.post(apiUrl + "api/Account/Logout", null, $scope.requestConfig()).then(
+            function (response) {
+
+            }
+        );
+        $window.sessionStorage.removeItem("token");
+        $window.localStorage.removeItem("token");
+        $location.path("login");
+    };
+
     $scope.checkAuthentication();
+
 });
 
 app.config(function ($routeProvider) {
@@ -76,16 +92,73 @@ app.config(function ($routeProvider) {
 
 app.controller("mainCtrl", function ($scope, $http, $window, $location) {
 
+    if (!$scope.token()) {
+        $location.path("login");
+        return;
+    }
+    $scope.selectedNote = null;
+
+    $scope.activeNote = {
+        Id: 0,
+        Title: "",
+        Content: ""
+    };
+
+    $scope.isLoading = true;
     $scope.notes = [];
 
     $scope.loadNotes = function () {
         $http.get(apiUrl + "api/Notes/GetNotes", $scope.requestConfig()).then(
             function (response) {
-                console.log(response.data);
+                $scope.notes = response.data;
+                $scope.isLoading = false;
+            },
+            function (response) {
+
+                if (response.status == 401) {
+                    $location.path("login");
+                }
             }
         );
     };
 
+    $scope.showNote = function (e, note) {
+        e.preventDefault();
+        $scope.activeNote = angular.copy(note);
+        $scope.selectedNote = note;
+    };
+
+    $scope.saveNote = function (e) {
+        e.preventDefault();
+
+        if ($scope.activeNote.Id !== 0) {
+            $http.put(apiUrl + "api/Notes/PutNote/" + $scope.activeNote.Id, $scope.activeNote, $scope.requestConfig()).then(
+
+                function (response) {
+                    console.log(response.data);
+                    $scope.selectedNote.Title = response.data.Title;
+                    $scope.selectedNote.Content = response.data.Content;
+                    $scope.selectedNote.ModifiedTime = response.data.ModifiedTime;
+                },
+
+                function (response) {
+
+                },
+            )
+        }
+    };
+
+    $scope.deleteNote = function (e) {
+
+    };
+    $scope.noteActiveClass = function (id) {
+        if ($scope.selectedNote == null) {
+            return "";
+        }
+        return $scope.selectedNote.Id == id ? "active" : "";
+    };
+
+    $scope.loadNotes();
 });
 
 app.controller("loginCtrl", function ($scope, $http, $location, $timeout, $httpParamSerializer, $window) {
