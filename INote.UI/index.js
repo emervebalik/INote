@@ -1,4 +1,4 @@
-﻿var apiUrl = "http://localhost:55159/";
+﻿var apiUrl = "https://inoteapi.kod.fun/";
 
 var app = angular.module("myApp", ["ngRoute"]);
 
@@ -216,9 +216,9 @@ app.controller("loginCtrl", function ($scope, $http, $location, $timeout, $httpP
     };
 
     $scope.user = {
-        grant_type: "password",
-        username: "emervebalik@gmail.com",
-        password: "Ankara1."
+        grant_type: "",
+        username: "",
+        password: ""
     };
 
     $scope.isRememberMe = false;
@@ -266,9 +266,9 @@ app.controller("registerCtrl", function ($scope, $http) {
     $scope.successMessage = "";
 
     $scope.user = {
-        Email: "emervebalik@gmail.com",
-        Password: "Ankara1.",
-        ConfirmPassword: "Ankara1."
+        Email: "",
+        Password: "",
+        ConfirmPassword: ""
     };
 
     $scope.register = function (e) {
